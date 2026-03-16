@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* Glass card */
+.glass {
+  background: rgba(30, 41, 59, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+/* Gradient buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  transition: filter 0.2s, transform 0.2s;
+}
+.btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-secondary:hover { background: rgba(99, 102, 241, 0.25); transform: translateY(-1px); }
+
+/* Active tab */
+.tab-active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+/* Stat card hover */
+.stat-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.stat-card:hover { border-color: rgba(99, 102, 241, 0.5); transform: translateY(-2px); }
+
+/* Range accent */
+input[type='range'] { accent-color: #6366f1; }
+
+/* Page entrance animation */
+.page-enter { animation: pageIn 0.3s ease; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* Toast */
+.toast-enter { animation: toastIn 0.3s ease; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+/* Reset app container */
+#app {
+  min-height: 100vh;
+  background: #020617;
+}
