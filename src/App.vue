@@ -67,7 +67,7 @@ const goTo   = (name) => router.push({ name })
       </div>
       <div class="text-xs text-slate-500 flex items-center gap-1.5">
         Desarrollado por
-        <span class="font-semibold text-teal-400">Fernanda Guadalupe Rodriguez Herrera</span>
+        <span class="font-semibold text-teal-400">Byron Alexander Vanegas</span>
         <span class="text-slate-700">·</span>
         <span class="text-slate-600">2025</span>
       </div>
