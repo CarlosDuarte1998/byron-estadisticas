@@ -57,7 +57,7 @@ const goTo = (name) => router.push({ name })
       <span>Probabilidad &amp; Estadística — Herramientas de Análisis</span>
       <span class="flex items-center gap-1.5">
         📊 Desarrollado por
-        <span class="text-slate-300 font-semibold">Byron Alexander Vanegas</span>
+        <span class="text-slate-300 font-semibold">Fernanda Guadalupe Rodriguez Herrera</span>
         &nbsp;·&nbsp; 2025
       </span>
     </div>
