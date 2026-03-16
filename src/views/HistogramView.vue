@@ -13,8 +13,8 @@ const mu           = ref(50)
 const sigma        = ref(10)
 const lambda       = ref(1)
 const chartType    = ref('histogram')
-const fillColor    = ref('#6366f1')
-const borderColor  = ref('#818cf8')
+const fillColor    = ref('#0d9488')
+const borderColor  = ref('#2dd4bf')
 const bins         = ref(15)
 
 const data  = ref([])
@@ -47,15 +47,17 @@ const loadManualData = () => {
   showToast(`${nums.length} datos cargados correctamente.`, 'success')
 }
 
-// ─── Generar datos automáticamente ───────────────────────────────────────────
+// ─── Generar datos ────────────────────────────────────────────────────────────
 
 const generateData = () => {
-  const params = { mu: mu.value, sigma: sigma.value, lambda: lambda.value,
-                   uMin: mu.value - sigma.value * Math.sqrt(3),
-                   uMax: mu.value + sigma.value * Math.sqrt(3) }
-  const d      = generateDistribution(distribution.value, n.value, params)
-  data.value   = d
-  stats.value  = calcStats(d)
+  const params = {
+    mu: mu.value, sigma: sigma.value, lambda: lambda.value,
+    uMin: mu.value - sigma.value * Math.sqrt(3),
+    uMax: mu.value + sigma.value * Math.sqrt(3),
+  }
+  const d     = generateDistribution(distribution.value, n.value, params)
+  data.value  = d
+  stats.value = calcStats(d)
 }
 
 // ─── Renderizar gráfico ───────────────────────────────────────────────────────
@@ -66,113 +68,179 @@ const renderChart = async () => {
     return
   }
   await nextTick()
-  const config = buildChartConfig({
-    type:        chartType.value,
-    data:        data.value,
-    stats:       stats.value,
-    bins:        bins.value,
-    fillColor:   fillColor.value,
-    borderColor: borderColor.value,
-    isPage2:     false,
-  })
-  createChart(CHART_ID, config)
+  createChart(CHART_ID, buildChartConfig({
+    type: chartType.value, data: data.value, stats: stats.value,
+    bins: bins.value, fillColor: fillColor.value,
+    borderColor: borderColor.value, isPage2: false,
+  }))
 }
 
-// ─── Computed: tarjetas de stats ──────────────────────────────────────────────
+// ─── Stats cards ─────────────────────────────────────────────────────────────
 
-const statsCards = computed(() => {
+const statsRows = computed(() => {
   const s = stats.value
   if (!s) return []
   return [
-    { icon: 'x̄',  label: 'Media',               value: fmt(s.mean,    3) },
-    { icon: 'M',   label: 'Mediana',              value: fmt(s.median,  3) },
-    { icon: 'σP',  label: 'Desv. Estándar Pobl.', value: fmt(s.stdDevP, 3) },
-    { icon: 's',   label: 'Desv. Estándar Mues.', value: fmt(s.stdDevS, 3) },
-    { icon: 'σ²',  label: 'Varianza Pobl.',        value: fmt(s.varianceP, 3) },
-    { icon: 's²',  label: 'Varianza Muestral',     value: fmt(s.varianceS, 3) },
-    { icon: '↕',   label: 'Rango',                value: fmt(s.range,   3) },
-    { icon: '▼',   label: 'Mínimo',               value: fmt(s.min,     3) },
-    { icon: '▲',   label: 'Máximo',               value: fmt(s.max,     3) },
-    { icon: 'n',   label: 'Tamaño',               value: s.n             },
+    { icon: 'x̄',  label: 'Media',                    value: fmt(s.mean,      3) },
+    { icon: 'M',   label: 'Mediana',                   value: fmt(s.median,    3) },
+    { icon: 'σP',  label: 'Desv. Estándar Poblacional',value: fmt(s.stdDevP,   3) },
+    { icon: 's',   label: 'Desv. Estándar Muestral',   value: fmt(s.stdDevS,   3) },
+    { icon: 'σ²',  label: 'Varianza Poblacional',       value: fmt(s.varianceP, 3) },
+    { icon: 's²',  label: 'Varianza Muestral',          value: fmt(s.varianceS, 3) },
+    { icon: '↕',   label: 'Rango',                     value: fmt(s.range,     3) },
+    { icon: '▼',   label: 'Mínimo',                    value: fmt(s.min,       3) },
+    { icon: '▲',   label: 'Máximo',                    value: fmt(s.max,       3) },
+    { icon: 'n',   label: 'Tamaño muestral',            value: s.n                 },
   ]
 })
 
 const chartTypes = [
-  { value: 'histogram', label: 'Histograma', icon: '📊' },
-  { value: 'bell',      label: 'Campana',    icon: '🔔' },
-  { value: 'radar',     label: 'Radar',      icon: '🕸️' },
-  { value: 'scatter',   label: 'Dispersión', icon: '✦'  },
+  { value: 'histogram', label: 'Histograma', icon: '▦' },
+  { value: 'bell',      label: 'Campana',    icon: '◠' },
+  { value: 'radar',     label: 'Radar',      icon: '◎' },
+  { value: 'scatter',   label: 'Dispersión', icon: '⋯' },
 ]
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-onMounted(() => {
-  generateData()
-  nextTick(() => renderChart())
-})
-
+onMounted(() => { generateData(); nextTick(() => renderChart()) })
 onBeforeUnmount(() => destroyChart(CHART_ID))
 </script>
 
 <template>
   <!-- Toast -->
   <Teleport to="body">
-    <div v-if="toast.show" class="fixed top-5 right-5 z-[9999] toast-enter">
+    <div v-if="toast.show" class="fixed top-16 right-4 z-[9999] toast-enter">
       <div
-        :class="toast.type === 'error' ? 'bg-red-600/90' : 'bg-emerald-600/90'"
-        class="px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-sm font-medium text-white border border-white/10"
+        :class="toast.type === 'error' ? 'border-red-500/40 bg-red-950/80' : 'border-teal-500/40 bg-teal-950/80'"
+        class="px-4 py-2.5 rounded-lg border shadow-xl flex items-center gap-2 text-xs font-medium text-slate-200"
       >
-        <span>{{ toast.type === 'error' ? '⚠️' : '✅' }}</span>
+        <span>{{ toast.type === 'error' ? '✕' : '✓' }}</span>
         {{ toast.message }}
       </div>
     </div>
   </Teleport>
 
-  <div class="page-enter">
-    <!-- Header -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white">Generador de Histogramas</h2>
-      <p class="text-slate-400 text-sm mt-1">Ingresa datos manualmente o genera distribuciones automáticamente</p>
+  <div class="page-enter max-w-screen-xl mx-auto px-5 py-6">
+
+    <!-- Page heading -->
+    <div class="mb-5 flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-mono text-teal-600 uppercase tracking-widest">Herramienta 01</span>
+        </div>
+        <h1 class="text-xl font-bold text-slate-100">Generador de Histogramas</h1>
+        <p class="text-slate-500 text-xs mt-0.5">Carga o genera datos y visualiza su distribución estadística</p>
+      </div>
+      <span v-if="data.length" class="badge-teal self-start mt-1">
+        n = {{ data.length }}
+      </span>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- ── MAIN GRID: resultado izquierda | controles derecha ──────────────── -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
 
-      <!-- ── LEFT PANEL ──────────────────────────────────────────────────── -->
-      <div class="space-y-5">
+      <!-- ── LEFT: chart + stats ───────────────────────────────────────────── -->
+      <div class="space-y-4">
 
-        <!-- Ingreso manual -->
-        <div class="glass rounded-2xl p-5">
-          <h3 class="font-semibold text-slate-200 flex items-center gap-2 mb-4">
-            <span class="text-indigo-400">✏️</span> Ingreso Manual de Datos
-          </h3>
-          <textarea
-            v-model="manualInput"
-            rows="4"
-            placeholder="Ejemplo: 12.5, 8.3, 15.7, 9.1&#10;O uno por línea..."
-            class="font-mono text-sm resize-none w-full rounded-lg bg-slate-800 border border-slate-700 text-white px-3 py-2 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
-          />
-          <div class="flex items-center justify-between mt-3">
-            <button @click="loadManualData" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold text-white">
-              Cargar datos
-            </button>
-            <span
-              v-if="data.length"
-              class="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs px-3 py-1 rounded-full"
-            >
-              {{ data.length }} datos
+        <!-- Chart panel -->
+        <div class="panel p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="section-header mb-0">
+              <span class="text-sm font-semibold text-slate-200">Visualización</span>
+            </div>
+            <span class="text-xs text-slate-600 font-mono">
+              {{ chartType }} · {{ bins }} bins
             </span>
+          </div>
+
+          <!-- Empty state -->
+          <div v-if="!data.length" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="text-4xl opacity-20 mb-3">◈</div>
+            <p class="text-slate-500 text-sm">Sin datos para visualizar</p>
+          </div>
+
+          <div v-else style="position:relative; height:320px; width:100%">
+            <canvas :id="CHART_ID" />
           </div>
         </div>
 
-        <!-- Generación automática -->
-        <div class="glass rounded-2xl p-5">
-          <h3 class="font-semibold text-slate-200 flex items-center gap-2 mb-4">
-            <span class="text-violet-400">⚡</span> Generación Automática
-          </h3>
+        <!-- Stats table -->
+        <div class="panel p-4">
+          <div class="section-header">
+            <span class="text-sm font-semibold text-slate-200">Estadísticas Descriptivas</span>
+          </div>
+
+          <div v-if="!stats" class="py-8 text-center text-slate-600 text-sm">
+            Genera datos para ver las métricas
+          </div>
+
+          <div v-else class="space-y-1.5">
+            <!-- Stats in two columns -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div v-for="row in statsRows" :key="row.label" class="stat-row">
+                <span class="text-xs font-bold text-teal-500 w-8 text-center shrink-0 font-mono">
+                  {{ row.icon }}
+                </span>
+                <span class="text-xs text-slate-400 flex-1">{{ row.label }}</span>
+                <span class="text-xs font-semibold text-slate-100 font-mono">{{ row.value }}</span>
+              </div>
+            </div>
+
+            <!-- Skewness -->
+            <div
+              class="mt-3 p-3 rounded-lg border flex items-center gap-3"
+              :class="skewnessStyle(stats.skewness).border"
+            >
+              <span
+                class="text-lg font-bold w-6 text-center shrink-0"
+                :class="skewnessStyle(stats.skewness).color"
+              >
+                {{ skewnessStyle(stats.skewness).icon }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs text-slate-500 mb-0.5">Tipo de sesgo</div>
+                <div class="text-xs font-semibold" :class="skewnessStyle(stats.skewness).color">
+                  {{ skewnessLabel(stats.skewness) }}
+                </div>
+              </div>
+              <span class="text-xs font-mono text-slate-500 shrink-0">
+                {{ fmt(stats.skewness, 4) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── RIGHT: controls ───────────────────────────────────────────────── -->
+      <div class="space-y-4">
+
+        <!-- Manual input -->
+        <div class="panel p-4">
+          <div class="section-header">
+            <span class="text-sm font-semibold text-slate-200">Datos Manuales</span>
+          </div>
+          <textarea
+            v-model="manualInput"
+            rows="3"
+            placeholder="12.5, 8.3, 15.7, 9.1 ...&#10;o uno por línea"
+            class="f-input font-mono text-xs resize-none"
+          />
+          <button @click="loadManualData" class="btn-outline w-full py-2 text-xs font-medium mt-2.5">
+            Cargar datos manuales
+          </button>
+        </div>
+
+        <!-- Auto generation -->
+        <div class="panel p-4">
+          <div class="section-header">
+            <span class="text-sm font-semibold text-slate-200">Generación Automática</span>
+          </div>
           <div class="space-y-3">
             <div>
-              <label class="text-xs text-slate-400 mb-1 block">Distribución</label>
-              <select v-model="distribution" class="rounded-lg bg-slate-800 border border-slate-700 text-white w-full px-3 py-2 focus:outline-none focus:border-indigo-500">
+              <label class="text-xs text-slate-500 mb-1 block">Distribución</label>
+              <select v-model="distribution" class="f-input text-sm">
                 <option value="normal">Normal</option>
                 <option value="uniform">Uniforme</option>
                 <option value="exponential">Exponencial</option>
@@ -180,127 +248,74 @@ onBeforeUnmount(() => destroyChart(CHART_ID))
               </select>
             </div>
             <div>
-              <label class="text-xs text-slate-400 mb-1 block">Cantidad de datos (n = {{ n }})</label>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs text-slate-500">Cantidad de datos</label>
+                <span class="text-xs font-mono text-teal-400">n = {{ n }}</span>
+              </div>
               <input type="range" v-model.number="n" min="10" max="1000" class="w-full" />
-              <div class="flex justify-between text-xs text-slate-600 mt-0.5"><span>10</span><span>1000</span></div>
+              <div class="flex justify-between text-xs text-slate-700 mt-0.5"><span>10</span><span>1000</span></div>
             </div>
-            <div v-if="distribution !== 'exponential'" class="grid grid-cols-2 gap-3">
+            <div v-if="distribution !== 'exponential'" class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-slate-400 mb-1 block">Media (μ)</label>
-                <input type="number" v-model.number="mu" step="0.5"
-                  class="rounded-lg bg-slate-800 border border-slate-700 text-white w-full px-3 py-2 focus:outline-none focus:border-indigo-500" />
+                <label class="text-xs text-slate-500 mb-1 block">Media (μ)</label>
+                <input type="number" v-model.number="mu" step="0.5" class="f-input text-sm" />
               </div>
               <div>
-                <label class="text-xs text-slate-400 mb-1 block">Desv. estándar (σ)</label>
-                <input type="number" v-model.number="sigma" min="0.01" step="0.1"
-                  class="rounded-lg bg-slate-800 border border-slate-700 text-white w-full px-3 py-2 focus:outline-none focus:border-indigo-500" />
+                <label class="text-xs text-slate-500 mb-1 block">Desv. est. (σ)</label>
+                <input type="number" v-model.number="sigma" min="0.01" step="0.1" class="f-input text-sm" />
               </div>
             </div>
             <div v-else>
-              <label class="text-xs text-slate-400 mb-1 block">Tasa (λ)</label>
-              <input type="number" v-model.number="lambda" min="0.01" step="0.1"
-                class="rounded-lg bg-slate-800 border border-slate-700 text-white w-full px-3 py-2 focus:outline-none focus:border-indigo-500" />
+              <label class="text-xs text-slate-500 mb-1 block">Tasa (λ)</label>
+              <input type="number" v-model.number="lambda" min="0.01" step="0.1" class="f-input text-sm" />
             </div>
-            <button @click="generateData(); renderChart()" class="btn-primary w-full py-2.5 rounded-xl text-sm font-semibold text-white">
-              ⚡ Generar datos automáticamente
+            <button @click="generateData(); renderChart()" class="btn-primary w-full py-2.5 text-sm font-semibold">
+              ◈ Generar datos
             </button>
           </div>
         </div>
 
-        <!-- Config del gráfico -->
-        <div class="glass rounded-2xl p-5">
-          <h3 class="font-semibold text-slate-200 flex items-center gap-2 mb-4">
-            <span class="text-emerald-400">🎨</span> Configuración del Gráfico
-          </h3>
+        <!-- Chart config -->
+        <div class="panel p-4">
+          <div class="section-header">
+            <span class="text-sm font-semibold text-slate-200">Configuración Visual</span>
+          </div>
           <div class="space-y-3">
             <div>
-              <label class="text-xs text-slate-400 mb-2 block">Tipo de gráfico</label>
-              <div class="grid grid-cols-2 gap-2">
+              <label class="text-xs text-slate-500 mb-1.5 block">Tipo de gráfico</label>
+              <div class="grid grid-cols-2 gap-1.5">
                 <button
                   v-for="ct in chartTypes" :key="ct.value"
                   @click="chartType = ct.value"
-                  :class="chartType === ct.value ? 'tab-active' : 'btn-secondary text-slate-300'"
-                  class="py-2 px-3 rounded-xl text-xs font-medium"
+                  :class="['chart-btn py-2 px-3 text-xs font-medium', chartType === ct.value ? 'active' : '']"
                 >
-                  {{ ct.icon }} {{ ct.label }}
+                  <span class="mr-1">{{ ct.icon }}</span>{{ ct.label }}
                 </button>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-slate-400 mb-1 block">Color principal</label>
+                <label class="text-xs text-slate-500 mb-1 block">Relleno</label>
                 <input type="color" v-model="fillColor"
-                  class="h-10 w-full rounded-lg border border-slate-600 cursor-pointer bg-transparent" />
+                  class="h-9 w-full rounded border border-slate-700 cursor-pointer bg-transparent" />
               </div>
               <div>
-                <label class="text-xs text-slate-400 mb-1 block">Color de borde</label>
+                <label class="text-xs text-slate-500 mb-1 block">Borde</label>
                 <input type="color" v-model="borderColor"
-                  class="h-10 w-full rounded-lg border border-slate-600 cursor-pointer bg-transparent" />
+                  class="h-9 w-full rounded border border-slate-700 cursor-pointer bg-transparent" />
               </div>
             </div>
             <div>
-              <label class="text-xs text-slate-400 mb-1 block">Número de bins ({{ bins }})</label>
-              <input type="range" v-model.number="bins" min="3" max="50" class="w-full" />
-              <div class="flex justify-between text-xs text-slate-600 mt-0.5"><span>3</span><span>50</span></div>
-            </div>
-            <button @click="renderChart" class="btn-primary w-full py-2.5 rounded-xl text-sm font-semibold text-white">
-              📊 Generar gráfico
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ── RIGHT PANEL ─────────────────────────────────────────────────── -->
-      <div class="space-y-5">
-
-        <!-- Stats -->
-        <div v-if="stats" class="glass rounded-2xl p-5">
-          <h3 class="font-semibold text-slate-200 flex items-center gap-2 mb-4">
-            <span class="text-indigo-400">📐</span> Estadísticas Calculadas
-          </h3>
-          <div class="grid grid-cols-2 gap-2.5">
-            <div v-for="s in statsCards" :key="s.label" class="stat-card rounded-xl p-3">
-              <div class="text-base font-bold text-indigo-400 mb-0.5">{{ s.icon }}</div>
-              <div class="text-xs text-slate-400 leading-tight">{{ s.label }}</div>
-              <div class="text-sm font-bold text-white mt-0.5">{{ s.value }}</div>
-            </div>
-          </div>
-
-          <!-- Sesgo badge -->
-          <div
-            class="mt-3 p-3 rounded-xl border"
-            :class="skewnessStyle(stats.skewness).border"
-          >
-            <div class="flex items-start gap-2">
-              <span class="text-xl mt-0.5 font-bold" :class="skewnessStyle(stats.skewness).color">{{ skewnessStyle(stats.skewness).icon }}</span>
-              <div>
-                <div class="text-xs text-slate-400">Tipo de sesgo</div>
-                <div class="text-sm font-semibold" :class="skewnessStyle(stats.skewness).color">
-                  {{ skewnessLabel(stats.skewness) }}
-                </div>
-                <div class="text-xs text-slate-500 mt-0.5">
-                  Coef. Pearson: {{ fmt(stats.skewness, 4) }}
-                </div>
+              <div class="flex justify-between mb-1">
+                <label class="text-xs text-slate-500">Número de bins</label>
+                <span class="text-xs font-mono text-teal-400">{{ bins }}</span>
               </div>
+              <input type="range" v-model.number="bins" min="3" max="50" class="w-full" />
+              <div class="flex justify-between text-xs text-slate-700 mt-0.5"><span>3</span><span>50</span></div>
             </div>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div v-else class="glass rounded-2xl p-10 flex flex-col items-center justify-center text-center">
-          <div class="text-6xl mb-4 opacity-30">📉</div>
-          <p class="text-slate-400 font-medium">Sin datos cargados</p>
-          <p class="text-slate-600 text-sm mt-1">Genera o ingresa datos para ver las estadísticas</p>
-        </div>
-
-        <!-- Gráfico -->
-        <div class="glass rounded-2xl p-5">
-          <h3 class="font-semibold text-slate-200 flex items-center gap-2 mb-4">
-            <span class="text-violet-400">📊</span> Visualización
-          </h3>
-          <div style="position:relative; height:300px; width:100%">
-            <canvas :id="CHART_ID" />
+            <button @click="renderChart" class="btn-primary w-full py-2.5 text-sm font-semibold">
+              ▦ Actualizar gráfico
+            </button>
           </div>
         </div>
 
